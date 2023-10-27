@@ -55,21 +55,16 @@ void setup()
             delay(5000);
         }
     }
-
-    client.publish(topic, "Hello, from " + topic);
 }
 
 void sendSensorData(const char *sensorType, float sensorValue)
 {
-    const payload = "{" + sensorType + ": " + sensorValue + "}";
-    client.publish(topic, jsonPayload);
+    const payload = '{"pH": 12}';
+    client.publish(topic, String(payload).c_str(), true);
 }
 
 void callback(char *topic, byte *payload, unsigned int length)
 {
-    Serial.println(topic);
-    Serial.println(payload);
-    Serial.println(length);
 }
 
 void loop()

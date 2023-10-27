@@ -14,9 +14,8 @@ admin.initializeApp({
     databaseURL:
         "https://node-firebase-1e1af-default-rtdb.asia-southeast1.firebasedatabase.app/",
 });
-const db = admin.database();
 
-let client = null;
+const db = admin.database();
 
 const clientId = 'server_' + Math.random().toString(16).substring(2, 8)
 const options = {
@@ -44,82 +43,35 @@ const company_sensors = 'company_sensors'
 const consumer_sensors = 'consumer_sensors'
 const qos = 0
 
-app.get('/connect', (req, res) => {
-    client = mqtt.connect(connectUrl, options)
-    client.on('connect', () => {
-        client.subscribe(company_sensors, { qos }, (error) => {
-            if (error) return console.log('Subscribe error:', error)
-            console.log(`${protocol}: Subcribing on '${company_sensors}'`)
-        })
-        client.subscribe(consumer_sensors, { qos }, (error) => {
-            if (error) return console.log('Subscribe error:', error)
-            console.log(`${protocol}: Subcribing on '${consumer_sensors}'`)
-        })
+const client = mqtt.connect(connectUrl, options)
+client.on('connect', () => {
+    client.subscribe(company_sensors, { qos }, (error) => {
+        if (error) return console.log('Subscribe error:', error)
+        console.log(`${protocol}: Subcribed on '${company_sensors}'`)
     })
-    client.on('reconnect', (error) => {
-        console.log(`Reconnecting(${protocol}):`, error)
+    client.subscribe(consumer_sensors, { qos }, (error) => {
+        if (error) return console.log('Subscribe error:', error)
+        console.log(`${protocol}: Subcribed on '${consumer_sensors}'`)
     })
+})
+client.on('reconnect', (error) => {
+    console.log(`Reconnecting(${protocol}):`, error)
+})
 
-    client.on('error', (error) => {
-        console.log(`Cannot connect(${protocol}):`, error)
-    })
+client.on('error', (error) => {
+    console.log(`Cannot connect(${protocol}):`, error)
+})
 
-    client.on('message', (topic, payload) => {
-        const ref = db.ref(topic);
-        const data = JSON.parse(payload);
-        ref.set(data, (error) => {
-            if (error == null) console.log('Succesfully saved.');
+client.on('message', (topic, payload) => {
+    const ref = db.ref(topic);
+    // const data = JSON.parse(payload);
+    const data = {
+        "pH": 100,
+        "turbidity": 100,
+    };
 
-        });
-    })
-    res.send('Connected');
-});
+    ref.set(data, (error) => {
+        if (error == null) console.log('Succesfully saved.');
 
-app.get('/disconnect', (req, res) => {
-    client.unsubscribe(company_sensors, { qos }, (error) => {
-        if (error) {
-            console.log('unsubscribe error:', error)
-            return
-        }
-        console.log(`Unsubscribed topic: ${company_sensors}`)
-    })
-    client.unsubscribe(consumer_sensors, { qos }, (error) => {
-        if (error) {
-            console.log('unsubscribe error:', error)
-            return
-        }
-        console.log(`Unsubscribed topic: ${consumer_sensors}`)
-    })
-    if (client.connected) {
-        try {
-            client.end(false, () => {
-                console.log('Disconnected successfully')
-            })
-        } catch (error) {
-            console.log('Disconnect error:', error)
-        }
-    }
-    res.send('Disconnected');
-});
-
-app.listen(port, () => {
-    console.log(`Server is listening at http://localhost:${port}`);
-});
-
-// Express for UI
-app.get('/', (req, res) => {
-    // Here you can render HTML elements
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>IoT-Based-Water-Quality-Monitoring-System</title>
-        </head>
-        <body>
-          <h1>Welcome to IoT-Based-Water-Quality-Monitoring-System!</h1>
-        </body>
-      </html>
-    `;
-
-    res.send(html);
-});
+    });
+})
