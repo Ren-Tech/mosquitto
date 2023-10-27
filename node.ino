@@ -1,13 +1,9 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-// WiFi
-const char *ssid = "[WIFI SSID]";         // Enter your WiFi name
-const char *password = "[WIFI password]"; // Enter WiFi password
-
 const char *mqtt_broker = "i8d3d352.ala.us-east-1.emqxsl.com"; // broker address
-const char *topic = "sensors";                                 // define topic
-const char *mqtt_username = "admin_henrii";                    // username for authentication
+const char *topic = "company_sensors";                         // define topic
+const char *mqtt_username = "admin_clarence";                  // username for authentication
 const char *mqtt_password = "adminadmin";                      // password for authentication
 const int mqtt_port = 8883;                                    // port of MQTT over TLS/SSL
 
@@ -18,22 +14,17 @@ const char *fingerprint = "42:AE:D8:A3:42:F1:C4:1F:CD:64:9C:D7:4B:A1:EE:5B:5E:D7
 
 void setup()
 {
-    Serial.begin(115200);
+    Serial.begin(9600);
 
-    // Initialize Wi-FiManager
     WiFiManager wifiManager;
-
-    // Disconnect Wi-Fi every time the device powers off (remove if not needed)
     WiFi.disconnect(true);
 
-    // Connect to Wi-Fi or configure credentials
     if (!wifiManager.autoConnect("Wi-Fi Manager", "wifi_manager"))
     {
         Serial.println("Failed to connect or configure. Restarting...");
         ESP.restart();
     }
 
-    // Print connection status
     if (WiFi.status() == WL_CONNECTED)
     {
         Serial.println("Connected: " + WiFi.SSID());
@@ -46,6 +37,7 @@ void setup()
     espClient.setFingerprint(fingerprint);
     client.setServer(mqtt_broker, mqtt_port);
     client.setCallback(callback);
+
     while (!client.connected())
     {
         String client_id = "esp8266-client-";
@@ -64,22 +56,37 @@ void setup()
         }
     }
 
-    client.publish(topic, "hello emqx");
-    client.subscribe(topic);
+    client.publish(topic, "Hello, from " + topic);
 }
 
-void sendSensorData()
+void sendSensorData(const char *sensorType, float sensorValue)
 {
-    client.publish(topic, "hello everyone");
+    const payload = "{" + sensorType + ": " + sensorValue + "}";
+    client.publish(topic, jsonPayload);
 }
 
-void callback(char *topic, byte *payload, unsigned int length) {}
+void callback(char *topic, byte *payload, unsigned int length)
+{
+    Serial.println(topic);
+    Serial.println(payload);
+    Serial.println(length);
+}
 
 void loop()
 {
-    if (!client.connected())
+    while (Serial.available() > 0)
     {
-        reconnect();
+        String data = Serial.readStringUntil('\n');
+        if (data.startsWith("pH: "))
+        {
+            float pHValue = data.substring(4).toFloat();
+            sendSensorData("pH", pHValue);
+        }
+        else if (data.startsWith("Turbidity: "))
+        {
+            int turbidity = data.substring(11).toInt();
+            sendSensorData("turbidity", turbidity);
+        }
     }
-    client.loop();
+    delay(1000);
 }
