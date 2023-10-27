@@ -64,11 +64,11 @@ client.on('error', (error) => {
 
 client.on('message', (topic, payload) => {
     const ref = db.ref(topic);
-    // const data = JSON.parse(payload);
-    const data = {
-        "pH": Math.floor(Math.random() * 99) + 1,
-        "turbidity": Math.floor(Math.random() * 99) + 1,
-    };
+    const data = JSON.parse(payload);
+    // const data = {
+    //     "pH": Math.floor(Math.random() * 99) + 1,
+    //     "turbidity": Math.floor(Math.random() * 99) + 1,
+    // };
 
     ref.set(data, (error) => {
         if (error == null) console.log('Succesfully saved.');
