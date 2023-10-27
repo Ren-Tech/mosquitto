@@ -66,8 +66,8 @@ client.on('message', (topic, payload) => {
     const ref = db.ref(topic);
     // const data = JSON.parse(payload);
     const data = {
-        "pH": 100,
-        "turbidity": 100,
+        "pH": Math.floor(Math.random() * 99) + 1,
+        "turbidity": Math.floor(Math.random() * 99) + 1,
     };
 
     ref.set(data, (error) => {
