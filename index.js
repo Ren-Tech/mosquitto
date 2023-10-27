@@ -3,11 +3,6 @@ const mqtt = require('mqtt')
 const { connectOptions } = require('./use_mqtts.js')
 const admin = require("firebase-admin");
 
-// For Express
-const express = require('express');
-const app = express(port = 3000);
-// End Express
-
 const serviceAccount = require("./node-service-account.json");
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -63,15 +58,23 @@ client.on('error', (error) => {
 })
 
 client.on('message', (topic, payload) => {
-    const ref = db.ref(topic);
     const data = JSON.parse(payload);
-    // const data = {
-    //     "pH": Math.floor(Math.random() * 99) + 1,
-    //     "turbidity": Math.floor(Math.random() * 99) + 1,
-    // };
 
-    ref.set(data, (error) => {
-        if (error == null) console.log('Succesfully saved.');
+    const stringify = JSON.stringify(data);
 
-    });
+    if (stringify.includes("pH")) {
+        const ref = db.ref(topic + "/pH");
+        const value = data['pH'];
+        ref.set(value, (error) => {
+            if (error == null) console.log('Succesfully saved.');
+        });
+    }
+    else {
+        const ref = db.ref(topic + "/turbidity");
+
+        const value = data['turbidity'];
+        ref.set(value, (error) => {
+            if (error == null) console.log('Succesfully saved.');
+        });
+    }
 })
