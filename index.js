@@ -71,6 +71,8 @@ client.on('error', (error) => {
     console.log(`Cannot connect(${protocol}):`, error)
 })
 
+const previousData = {}; // Store previous data
+
 client.on('message', (topic, payload) => {
     const data = JSON.parse(payload);
     const now = new Date();
@@ -80,12 +82,16 @@ client.on('message', (topic, payload) => {
 
     if (data.hasOwnProperty('pH')) {
         const pHValue = data['pH'];
+        const previouspHValue = previousData.hasOwnProperty(topic) ? previousData[topic].pH : null;
 
         if (pHValue >= 5 && pHValue <= 14) {
             const pHRef = db.ref(topic + "/pH");
             pHRef.set(pHValue, (error) => {
                 if (error === null) {
-                    console.log(`pH: ${pHValue}, Time: ${currentTime}`);
+                    if (pHValue !== previouspHValue) {
+                        console.log(`pH: ${pHValue}, Time: ${currentTime}`);
+                    }
+                    previousData[topic] = { ...previousData[topic], pH: pHValue };
                 } else {
                     console.log('Error saving pH value:', error);
                 }
@@ -97,12 +103,16 @@ client.on('message', (topic, payload) => {
 
     if (data.hasOwnProperty('turbidity')) {
         const turbidityValue = data['turbidity'];
+        const previousturbidityValue = previousData.hasOwnProperty(topic) ? previousData[topic].turbidity : null;
 
         if (turbidityValue >= -1 && turbidityValue <= 100) {
             const turbidityRef = db.ref(topic + "/turbidity");
             turbidityRef.set(turbidityValue, (error) => {
                 if (error === null) {
-                    console.log(`Turbidity: ${turbidityValue}, Time: ${currentTime}`);
+                    if (turbidityValue !== previousturbidityValue) {
+                        console.log(`Turbidity: ${turbidityValue}, Time: ${currentTime}`);
+                    }
+                    previousData[topic] = { ...previousData[topic], turbidity: turbidityValue };
                 } else {
                     console.log('Error saving turbidity value:', error);
                 }
@@ -112,4 +122,3 @@ client.on('message', (topic, payload) => {
         }
     }
 });
-
