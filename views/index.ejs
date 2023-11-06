@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Quality Dashboard</title>
+</head>
+<body>
+    <h1>Water Quality Dashboard</h1>
+    <div>
+        <h2>pH Value: <span id="pHValue">Loading...</span></h2>
+        <h2>Turbidity Value: <span id="turbidityValue">Loading...</span></h2>
+    </div>
+    <script>
+        // JavaScript code to update the UI values
+        const pHValueElement = document.getElementById("pHValue");
+        const turbidityValueElement = document.getElementById("turbidityValue");
+
+        // Function to update pH and turbidity values in the UI
+        function updateUI(data) {
+            if (data.pH) {
+                pHValueElement.textContent = data.pH;
+            }
+            if (data.turbidity) {
+                turbidityValueElement.textContent = data.turbidity;
+            }
+        }
+    </script>
+</body>
+</html>

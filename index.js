@@ -7,7 +7,7 @@ const serviceAccount = require("./node-service-account.json");
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     databaseURL:
-        "https://node-firebase-1e1af-default-rtdb.asia-southeast1.firebasedatabase.app/",
+        "https://psmwaterquality-default-rtdb.asia-southeast1.firebasedatabase.app",
 });
 
 const db = admin.database();
@@ -17,7 +17,7 @@ const options = {
     clientId,
     clean: true,
     connectTimeout: 4000,
-    username: 'admin_henrii',
+    username: 'admin_clarence',
     password: 'adminadmin',
     reconnectPeriod: 1000,
     rejectUnauthorized: true,

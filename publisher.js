@@ -42,7 +42,7 @@ const options = {
     username: 'admin_clarence',
     password: 'adminadmin',
     reconnectPeriod: 1000,
-    rejectUnauthorized: true,
+    rejectUnauthorized: false,
 }
 
 const { protocol, host, ports } = connectOptions
