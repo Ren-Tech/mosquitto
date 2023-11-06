@@ -22,6 +22,8 @@ app.listen(port, () => {
   app.get('/', (req, res) => {
     res.send('Server is running'); // 
   });
+
+
   
 
 const clientId = 'server_' + Math.random().toString(16).substring(2, 8)
@@ -72,21 +74,37 @@ client.on('error', (error) => {
 client.on('message', (topic, payload) => {
     const data = JSON.parse(payload);
 
-    const stringify = JSON.stringify(data);
+    if (data.hasOwnProperty('pH')) {
+        const pHValue = data['pH'];
 
-    if (stringify.includes("pH")) {
-        const ref = db.ref(topic + "/pH");
-        const value = data['pH'];
-        ref.set(value, (error) => {
-            if (error == null) console.log('Succesfully saved.');
-        });
+        if (pHValue >= 5 && pHValue <= 14) {
+            const pHRef = db.ref(topic + "/pH");
+            pHRef.set(pHValue, (error) => {
+                if (error === null) {
+                    console.log('pH value successfully saved.');
+                } else {
+                    console.log('Error saving pH value:', error);
+                }
+            });
+        } else {
+            console.log('Invalid pH value. Not saved.');
+        }
     }
-    else {
-        const ref = db.ref(topic + "/turbidity");
 
-        const value = data['turbidity'];
-        ref.set(value, (error) => {
-            if (error == null) console.log('Succesfully saved.');
-        });
+    if (data.hasOwnProperty('turbidity')) {
+        const turbidityValue = data['turbidity'];
+
+        if (turbidityValue >= -1 && turbidityValue <= 100) {
+            const turbidityRef = db.ref(topic + "/turbidity");
+            turbidityRef.set(turbidityValue, (error) => {
+                if (error === null) {
+                    console.log('Turbidity value successfully saved.');
+                } else {
+                    console.log('Error saving turbidity value:', error);
+                }
+            });
+        } else {
+            console.log('Invalid turbidity value. Not saved.');
+        }
     }
-})
+});
