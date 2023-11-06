@@ -2,6 +2,9 @@ const fs = require('fs')
 const mqtt = require('mqtt')
 const { connectOptions } = require('./use_mqtts.js')
 const admin = require("firebase-admin");
+const express = require('express');
+const app = express();
+const port = process.env.PORT || 3000;
 
 const serviceAccount = require("./node-service-account.json");
 admin.initializeApp({
@@ -11,6 +14,10 @@ admin.initializeApp({
 });
 
 const db = admin.database();
+
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
 
 const clientId = 'server_' + Math.random().toString(16).substring(2, 8)
 const options = {
