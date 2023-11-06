@@ -20,31 +20,7 @@ app.listen(port, () => {
   });
 
   app.get('/', (req, res) => {
-    // Check if your server is running
-    if (serverIsRunning) {
-      res.send('Server is running');
-    } else if (serverFailedToRun) {
-      res.status(500).send('Server failed to run');
-    } else {
-      res.status(500).send('Server is not running');
-    }
-  });
-  
-  // Set up a flag to track the server's status
-  let serverIsRunning = false;
-  let serverFailedToRun = false;
-  
-  // Start the server
-  const server = app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-    serverIsRunning = true;
-  });
-  
-  // Handle server errors
-  server.on('error', (error) => {
-    console.error('Server failed to run:', error);
-    serverIsRunning = false;
-    serverFailedToRun = true;
+    res.send('Server is running'); // 
   });
   
 
