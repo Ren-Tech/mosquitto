@@ -73,6 +73,10 @@ client.on('error', (error) => {
 
 client.on('message', (topic, payload) => {
     const data = JSON.parse(payload);
+    const now = new Date();
+    const date = `${now.getMonth() + 1}-${now.getDate()}-${now.getFullYear()}`;
+    const time = now.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    const currentTime = `${date} | ${time}`;
 
     if (data.hasOwnProperty('pH')) {
         const pHValue = data['pH'];
@@ -81,7 +85,7 @@ client.on('message', (topic, payload) => {
             const pHRef = db.ref(topic + "/pH");
             pHRef.set(pHValue, (error) => {
                 if (error === null) {
-                    console.log('pH value successfully saved.');
+                    console.log(`pH: ${pHValue}, Time: ${currentTime}`);
                 } else {
                     console.log('Error saving pH value:', error);
                 }
@@ -98,7 +102,7 @@ client.on('message', (topic, payload) => {
             const turbidityRef = db.ref(topic + "/turbidity");
             turbidityRef.set(turbidityValue, (error) => {
                 if (error === null) {
-                    console.log('Turbidity value successfully saved.');
+                    console.log(`Turbidity: ${turbidityValue}, Time: ${currentTime}`);
                 } else {
                     console.log('Error saving turbidity value:', error);
                 }
@@ -108,3 +112,4 @@ client.on('message', (topic, payload) => {
         }
     }
 });
+
