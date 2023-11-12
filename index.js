@@ -1,32 +1,47 @@
-const fs = require('fs')
-const mqtt = require('mqtt')
-const { connectOptions } = require('./use_mqtts.js')
-const admin = require("firebase-admin");
+const fs = require('fs');
+const mqtt = require('mqtt');
+const { connectOptions } = require('./use_mqtts.js');
+const admin = require('firebase-admin');
 const express = require('express');
 const app = express();
+const path = require('path');
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
 const port = process.env.PORT || 3000;
 
 const serviceAccount = require("./node-service-account.json");
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    databaseURL:
-        "https://psmwaterquality-default-rtdb.asia-southeast1.firebasedatabase.app",
+    databaseURL: "https://psmwaterquality-default-rtdb.asia-southeast1.firebasedatabase.app",
 });
 
 const db = admin.database();
 
+// Declare previousData object here
+const previousData = {}; // Store previous data
+
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
-  });
+});
 
-  app.get('/', (req, res) => {
-    res.send('Server is running'); // 
-  });
+// Add this line before your app.get('/'...) route
+app.set('views', path.join(__dirname, 'views'));
 
 
-  
 
-const clientId = 'server_' + Math.random().toString(16).substring(2, 8)
+// Add this line in your server initialization code
+app.get('/', (req, res) => {
+    // Pass the latest pH and turbidity values to the template
+    res.render('index.ejs', { pH: previousData[company_sensors]?.pH, turbidity: previousData[company_sensors]?.turbidity });
+
+    // Emit the initial values to the client when the page loads
+    const initialData = { pH: previousData[company_sensors]?.pH, turbidity: previousData[company_sensors]?.turbidity };
+    io.emit('realtime', initialData);
+    console.log('Initial values emitted:', initialData);
+});
+
+
+const clientId = 'server_' + Math.random().toString(16).substring(2, 8);
 const options = {
     clientId,
     clean: true,
@@ -35,50 +50,47 @@ const options = {
     password: 'adminadmin',
     reconnectPeriod: 1000,
     rejectUnauthorized: true,
-}
+};
 
-const { protocol, host, ports } = connectOptions
+const { protocol, host, ports } = connectOptions;
 
-let connectUrl = `${protocol}://${host}:${ports}`
+let connectUrl = `${protocol}://${host}:${ports}`;
 if (['ws', 'wss'].includes(protocol)) {
-    connectUrl += '/mqtt'
+    connectUrl += '/mqtt';
 }
 
 if (['mqtts', 'wss'].includes(protocol) && fs.existsSync('./emqxsl-ca.crt')) {
-    options['ca'] = fs.readFileSync('./emqxsl-ca.crt')
+    options['ca'] = fs.readFileSync('./emqxsl-ca.crt');
 }
 
-const company_sensors = 'company_sensors'
-const consumer_sensors = 'consumer_sensors'
-const qos = 0
+const company_sensors = 'company_sensors';
+const consumer_sensors = 'consumer_sensors';
+const qos = 0;
 
-const client = mqtt.connect(connectUrl, options)
+const client = mqtt.connect(connectUrl, options);
+
 client.on('connect', () => {
     client.subscribe(company_sensors, { qos }, (error) => {
-        if (error) return console.log('Subscribe error:', error)
-        console.log(`${protocol}: Subcribed on '${company_sensors}'`)
-    })
+        if (error) return console.log('Subscribe error:', error);
+        console.log(`${protocol}: Subscribed on '${company_sensors}'`);
+    });
     client.subscribe(consumer_sensors, { qos }, (error) => {
-        if (error) return console.log('Subscribe error:', error)
-        console.log(`${protocol}: Subcribed on '${consumer_sensors}'`)
-    })
-})
+        if (error) return console.log('Subscribe error:', error);
+        console.log(`${protocol}: Subscribed on '${consumer_sensors}'`);
+    });
+});
+
 client.on('reconnect', (error) => {
-    console.log(`Reconnecting(${protocol}):`, error)
-})
+    console.log(`Reconnecting(${protocol}):`, error);
+});
 
 client.on('error', (error) => {
-    console.log(`Cannot connect(${protocol}):`, error)
-})
-
-const previousData = {}; // Store previous data
+    console.log(`Cannot connect(${protocol}):`, error);
+});
 
 client.on('message', (topic, payload) => {
+   
     const data = JSON.parse(payload);
-    const now = new Date();
-    const date = `${now.getMonth() + 1}-${now.getDate()}-${now.getFullYear()}`;
-    const time = now.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-    const currentTime = `${date} | ${time}`;
 
     if (data.hasOwnProperty('pH')) {
         const pHValue = data['pH'];
@@ -89,7 +101,9 @@ client.on('message', (topic, payload) => {
             pHRef.set(pHValue, (error) => {
                 if (error === null) {
                     if (pHValue !== previouspHValue) {
-                        console.log(`pH: ${pHValue}, Time: ${currentTime}`);
+                        console.log(`pH: ${pHValue}`);
+                        // Emit the real-time event after updating the value
+                        io.emit('realtime', { pH: pHValue, turbidity: previousData[company_sensors]?.turbidity });
                     }
                     previousData[topic] = { ...previousData[topic], pH: pHValue };
                 } else {
@@ -110,7 +124,9 @@ client.on('message', (topic, payload) => {
             turbidityRef.set(turbidityValue, (error) => {
                 if (error === null) {
                     if (turbidityValue !== previousturbidityValue) {
-                        console.log(`Turbidity: ${turbidityValue}, Time: ${currentTime}`);
+                        console.log(`Turbidity: ${turbidityValue}`);
+                        // Emit the real-time event after updating the value
+                        io.emit('realtime', { pH: previousData[company_sensors]?.pH, turbidity: turbidityValue });
                     }
                     previousData[topic] = { ...previousData[topic], turbidity: turbidityValue };
                 } else {
@@ -122,3 +138,4 @@ client.on('message', (topic, payload) => {
         }
     }
 });
+

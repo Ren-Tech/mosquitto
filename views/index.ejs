@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Add your existing head content here -->
+
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .title {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 20px; /* Increase margin for better spacing */
+    }
+
+    .row {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px; /* Add some space between the title and indicators */
+    }
+
+    .indicator {
+      text-align: center;
+    }
+
+    .indicator p {
+      font-size: 18px;
+    }
+
+    .value {
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      background-color: #3498db;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-top: 10px;
+    }
+
+    .server-status-container {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: green;
+      border-radius: 5px;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="title">Server Dashboard</div>
+
+  <div class="row">
+    <div class="indicator" id="pHIndicator">
+      <p>pH</p>
+      <div class="value" id="pHValue"><%= pH !== undefined ? pH.toFixed(2) : 'N/A' %></div>
+    </div>
+
+    <div class="indicator" id="turbidityIndicator">
+      <p>Turbidity</p>
+      <div class="value" id="turbidityValue"><%= turbidity !== undefined ? turbidity.toFixed(2) : 'N/A' %></div>
+    </div>
+  </div>
+  <p>
+    <p>
+
+  <!-- Server Status Section -->
+   <!-- Server Status Section -->
+   <div class="server-status-container" id="serverStatus">Server is running</div>
+
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+   <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+   <script>
+     // Connect to the Socket.IO server
+     const socket = io();
+     console.log('Socket.IO connection established:', socket.connected);
+ 
+     // Update real-time data on the client side
+     socket.on('realtime', (data) => {
+       // Update pH value
+       const pHValueElement = document.getElementById('pHValue');
+       pHValueElement.innerText = data.pH !== undefined ? data.pH.toFixed(2) : 'N/A';
+ 
+       // Update turbidity value
+       const turbidityValueElement = document.getElementById('turbidityValue');
+       turbidityValueElement.innerText = data.turbidity !== undefined ? data.turbidity.toFixed(2) : 'N/A';
+ 
+       // Update server status
+       const serverStatusElement = document.getElementById('serverStatus');
+       serverStatusElement.innerText = 'Server is running'; // Update this based on your server status logic
+     });
+ 
+     // Emit the initial values to the client when the page loads
+     socket.emit('realtime', { pH: 7.64, turbidity: 91 });
+   </script>
+
+</body>
+</html>
