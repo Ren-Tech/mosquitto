@@ -54,6 +54,8 @@
       border-radius: 5px;
       color: white;
     }
+
+    /* Add your existing styles here */
   </style>
 </head>
 <body>
@@ -62,46 +64,55 @@
   <div class="row">
     <div class="indicator" id="pHIndicator">
       <p>pH</p>
-      <div class="value" id="pHValue"><%= pH !== undefined ? pH.toFixed(2) : 'N/A' %></div>
+      <div class="value" id="pHValue"><%= pH !== undefined ? pH.toFixed(2) : '--' %></div>
     </div>
 
     <div class="indicator" id="turbidityIndicator">
       <p>Turbidity</p>
-      <div class="value" id="turbidityValue"><%= turbidity !== undefined ? turbidity.toFixed(2) : 'N/A' %></div>
+      <div class="value" id="turbidityValue"><%= turbidity !== undefined ? turbidity.toFixed(2) : '--' %></div>
     </div>
   </div>
   <p>
     <p>
+      
+
+  <!-- Add a refresh button -->
+  <!-- Add a styled refresh button -->
+<button onclick="refreshPage()" style="background-color: #4CAF50; /* Green */ color: white; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; border-radius: 5px;">REFRESH</button>
+
 
   <!-- Server Status Section -->
-   <!-- Server Status Section -->
-   <div class="server-status-container" id="serverStatus">Server is running</div>
+  <div class="server-status-container" id="serverStatus">Server is running</div>
 
-   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-   <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
-   <script>
-     // Connect to the Socket.IO server
-     const socket = io();
-     console.log('Socket.IO connection established:', socket.connected);
- 
-     // Update real-time data on the client side
-     socket.on('realtime', (data) => {
-       // Update pH value
-       const pHValueElement = document.getElementById('pHValue');
-       pHValueElement.innerText = data.pH !== undefined ? data.pH.toFixed(2) : 'N/A';
- 
-       // Update turbidity value
-       const turbidityValueElement = document.getElementById('turbidityValue');
-       turbidityValueElement.innerText = data.turbidity !== undefined ? data.turbidity.toFixed(2) : 'N/A';
- 
-       // Update server status
-       const serverStatusElement = document.getElementById('serverStatus');
-       serverStatusElement.innerText = 'Server is running'; // Update this based on your server status logic
-     });
- 
-     // Emit the initial values to the client when the page loads
-     socket.emit('realtime', { pH: 7.64, turbidity: 91 });
-   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+  <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+  <script>
+    // Connect to the Socket.IO server
+    const socket = io();
+    console.log('Socket.IO connection established:', socket.connected);
 
+    // Update real-time data on the client side
+    socket.on('realtime', (data) => {
+      // Update pH value
+      const pHValueElement = document.getElementById('pHValue');
+      pHValueElement.innerText = data.pH !== undefined ? data.pH.toFixed(2) : '--';
+
+      // Update turbidity value
+      const turbidityValueElement = document.getElementById('turbidityValue');
+      turbidityValueElement.innerText = data.turbidity !== undefined ? data.turbidity.toFixed(2) : '--';
+
+      // Update server status
+      const serverStatusElement = document.getElementById('serverStatus');
+      serverStatusElement.innerText = 'Server is running'; // Update this based on your server status logic
+    });
+
+    // Emit the initial values to the client when the page loads
+    socket.emit('realtime', { pH: 7.64, turbidity: 91 });
+
+    // Function to refresh the page
+    function refreshPage() {
+      location.reload();
+    }
+  </script>
 </body>
 </html>
